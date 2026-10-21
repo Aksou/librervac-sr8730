@@ -6,7 +6,10 @@ SR8730 / SR8750 / SR8751**. Projet d'origine : [LibreRVAC](https://librervac.org
 Ce dépôt contient le firmware bas niveau pour le **PIC32MX360F256L** (80 MHz,
 256 Ko flash / 32 Ko RAM). Il dialogue avec une carte Linux/WiFi embarquée via
 le **protocole CORD** (JSON sur liaison série) fourni par la bibliothèque
-[`cordlib`](https://github.com/LibreRVAC/librervac-cordlib) (submodule).
+`cordlib/` (vendored, fork de [LibreRVAC/librervac-cordlib](https://github.com/LibreRVAC/librervac-cordlib)).
+
+La **legacy peripheral library** Microchip (`plib.h`, retirée des XC32 récents)
+est également vendored dans `pic32libs/` (voir `pic32libs/README.md`).
 
 ## Architecture
 
@@ -16,12 +19,13 @@ le **protocole CORD** (JSON sur liaison série) fourni par la bibliothèque
 └──────────────┬───────────────┘
                │ UART — protocole CORD (JSON, séparateur 0x1E)
 ┌──────────────▼───────────────┐
-│  cordlib (submodule)         │  protocole, callbacks, commandes motor/move/beep
-│  + jsmn (submodule)          │  parser JSON
+│  cordlib/ (vendored)         │  protocole, callbacks, commandes motor/move/beep
+│  + jsmn/ (vendored)          │  parser JSON
 └──────────────┬───────────────┘
                │ callbacks hw_*
 ┌──────────────▼───────────────┐  ← ce dépôt
 │  Firmware bas niveau (PIC32) │  moteurs, capteurs, batterie, charge, UART bit-bang
+│  + pic32libs/ (vendored)     │  legacy plib Microchip (plib.h + peripheral/*.h)
 └──────────────────────────────┘
 ```
 
@@ -34,6 +38,9 @@ Le firmware se compile avec le compilateur **MPLAB XC32** (Microchip) :
 make                # build dist/firmware.hex + .elf + .map
 make XC32_DIR=/chemin/vers/xc32/v4.45   # version spécifique
 ```
+
+La legacy plib est fournie (`pic32libs/`). Pour utiliser une installation
+officielle Microchip à la place : `make PLIB_DIR=/opt/microchip/xc32/vX.XX/pic32mx`.
 
 Flash du `.hex` avec un programmateur PIC32 (Pickit, ICD, ...).
 

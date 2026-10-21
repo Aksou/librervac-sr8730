@@ -8,13 +8,15 @@ Firmware d'origine du projet : [LibreRVAC](https://github.com/LibreRVAC).
 - MCU : **PIC32MX360F256L**, 80 MHz (`FOSC 80000000`, `FPB_DIV 1`, voir `settings.h`)
 - Ressources : **256 Ko flash / 32 Ko RAM** — extrêmement serrées. Toute feature doit tenir dans le budget RAM.
 - Compilateur : **MPLAB XC32** (Microchip, gcc-based). Obligatoire : `-fgnu89-inline` (sinon la plib legacy ne compile pas, voir `main.h`). Le Makefile cible `/opt/microchip/xc32/current` par défaut (`XC32_DIR` surchargeable).
+- **Legacy plib** : Microchip ne la livre plus avec XC32 (retirée depuis v1.40). Elle est **vendored** dans `pic32libs/` (headers `plib.h` + `peripheral/*.h` + `libmchp_peripheral_32MX360F256L.a`), extraite de MPIDE 0150 — voir `pic32libs/README.md`. Le Makefile l'utilise par défaut (`PLIB_DIR` surchargeable).
 - Pas de RTOS : boucle coopérative, callbacks enregistrés dans `main.c` (`set_callback_*`), `step()` appelé en continu par `cord_init.c`.
 
 ## Architecture (3 couches)
 
 1. **Ce dépôt** — drivers bas niveau : `pinout.h` (toutes les broches), `gpio.h`, `multiplexer.h`/`mulpinout.h`, `timing.c`, `uart.c` (UART bit-bang), `motors.c` (PWM 20 kHz), `sound.c`, `leds.c`, `battery.c`, `charging.c`, `sensors.c`, `bumper.c`, `wheels.c` (quasi vide).
-2. **`cordlib/`** (submodule `LibreRVAC/librervac-cordlib`) — framework : protocole **CORD** (JSON sur UART, séparateur `0x1E`, auto-détection de débit), machine à callbacks, commandes `{"c":"motor"|"move"|"beep"}`, événements, rapports périodiques, modes `MODE_IDLE/WORKING/SLEEPING/DOCKING` (déclarés, pas encore utilisés).
-3. **`jsmn/`** (submodule) — parser JSON embarqué.
+2. **`cordlib/`** (vendored — fork de `LibreRVAC/librervac-cordlib`, avec le fix `motor`/`move` pour XC32) — framework : protocole **CORD** (JSON sur UART, séparateur `0x1E`, auto-détection de débit), machine à callbacks, commandes `{"c":"motor"|"move"|"beep"}`, événements, rapports périodiques, modes `MODE_IDLE/WORKING/SLEEPING/DOCKING` (déclarés, pas encore utilisés).
+3. **`jsmn/`** (vendored) — parser JSON embarqué.
+4. **`pic32libs/`** (vendored) — legacy peripheral library Microchip pour le PIC32MX360F256L.
 
 Esprit du projet : le PIC32 dialogue avec une **carte Linux/WiFi embarquée** via CORD (voir `PIN_LEGACY_LINUX_BOARD_*` dans `pinout.h`).
 
@@ -47,8 +49,8 @@ Esprit du projet : le PIC32 dialogue avec une **carte Linux/WiFi embarquée** vi
 - Macros GPIO : `CONFIGURE_PIN(PIN_X, INPUT|OUTPUT)`, `DIGPIN(PIN_X, on|off)`, `READPIN(PIN_X)`, `MULSEL`/`MULPIN` pour les multiplexeurs.
 - `#pragma once` dans les headers. `#pragma config` uniquement dans `main.c`.
 - Style : accolades K&R, 4 espaces, variables `snake_case`.
-- **Ne pas ajouter de dépendances** sauf si le dépôt les utilise déjà (cordlib, jsmn uniquement).
-- Ne pas toucher aux submodules (`cordlib/`, `jsmn/`) depuis ce dépôt ; les remonter upstream si besoin.
+- **Ne pas ajouter de dépendances** sauf si le dépôt les utilise déjà (cordlib, jsmn, pic32libs uniquement).
+- `cordlib/`, `jsmn/` et `pic32libs/` sont **vendored** (plus de submodules) : les modifier directement dans ce dépôt.
 
 ## Build et test
 

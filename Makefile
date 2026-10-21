@@ -24,9 +24,14 @@ OBJCOPY     := $(XC32_BIN)/xc32-bin2hex
 
 # Drapeaux de compilation cible (hérités du projet MPLAB X d'origine :
 # la plib legacy exige -fgnu89-inline)
+# PLIB_DIR : emplacement de la legacy plib (headers + libmchp_peripheral).
+# Par défaut on utilise la copie vendored dans pic32libs/ (voir pic32libs/README.md).
+PLIB_DIR    ?= pic32libs
 TARGET_CFLAGS := -G1024 -g -O1 -fgnu89-inline -mno-float -Wall \
-                 -mprocessor=$(DEVICE) -I. -Icordlib -Ijsmn
+                 -mprocessor=$(DEVICE) -I. -Icordlib -Ijsmn \
+                 -I$(PLIB_DIR) -I$(PLIB_DIR)/peripheral
 TARGET_LDFLAGS := -mprocessor=$(DEVICE) -Wl,--defsym=__MPLAB_BUILD=1,--script="p$(DEVICE).ld",-Map=dist/firmware.map,--report-mem
+PLIB_LIB    := $(PLIB_DIR)/libmchp_peripheral_$(DEVICE).a
 
 # Sources : tout le .c du dépôt racine + cordlib + jsmn
 SRCS_TARGET := $(wildcard *.c) $(wildcard cordlib/*.c) jsmn/jsmn.c
@@ -77,8 +82,8 @@ all: $(HEX)
 
 # --- Build cible (XC32) ---
 
-$(ELF): $(OBJS_TARGET) | dist
-	$(CC_TARGET) $(TARGET_LDFLAGS) -o $@ $(OBJS_TARGET)
+$(ELF): $(OBJS_TARGET) $(PLIB_LIB) | dist
+	$(CC_TARGET) $(TARGET_LDFLAGS) -o $@ $(OBJS_TARGET) $(PLIB_LIB)
 
 $(HEX): $(ELF) | dist
 	$(OBJCOPY) $(ELF)

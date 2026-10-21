@@ -15,7 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
 
       - name: Install cppcheck
         run: sudo apt-get update && sudo apt-get install -y cppcheck
@@ -32,7 +31,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
 
       - name: Install gcc
         run: sudo apt-get update && sudo apt-get install -y gcc make
@@ -49,7 +47,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
 
       - name: Setup XC32 compiler
         uses: usimd/setup-xc-action@v1
@@ -81,7 +78,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
 
       - name: Setup XC32 compiler
         uses: usimd/setup-xc-action@v1
