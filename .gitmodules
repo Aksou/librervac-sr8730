@@ -1,6 +1,7 @@
 [submodule "cordlib"]
 	path = cordlib
-	url = https://github.com/LibreRVAC/librervac-cordlib.git
+	url = https://github.com/Aksou/librervac-sr8730.git
+	branch = cordlib/fix-motor-move-xc32
 [submodule "jsmn"]
 	path = jsmn
 	url = https://github.com/zserge/jsmn.git
