@@ -87,7 +87,6 @@ static void process_beep() {
 }
 
 static void process_motor() {
-#ifdef __SDCC
     bool ok = false;
     cord_motor_type motor;
     float throttle = 0;
@@ -126,7 +125,6 @@ static void process_motor() {
     }
     if (ok) // TODO handle broken packets
         cord_set_motor_throttle(motor, throttle);
-#endif
 }
 
 static void process_move() {
@@ -146,12 +144,10 @@ static void process_move() {
         }
         // we will just skip JSMN_PRIMITIVE and possibly something else
     }
-#ifndef __SDCC
     if (length != 0 && radius != 0) // TODO handle broken packets
         cord_move_arc(length, radius);
     else if (length != 0)
         cord_move(length);
-#endif
 }
 
 static void process_command(const char *str, size_t length) {
