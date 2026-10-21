@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
 
       - name: Install cppcheck
         run: sudo apt-get update && sudo apt-get install -y cppcheck
@@ -30,7 +29,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
 
       - name: Install gcc
         run: sudo apt-get update && sudo apt-get install -y gcc make
@@ -46,7 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
 
       - name: Setup XC32 compiler
         uses: usimd/setup-xc-action@v1
@@ -77,7 +74,6 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-        with:
 
       - name: Setup XC32 compiler
         uses: usimd/setup-xc-action@v1
