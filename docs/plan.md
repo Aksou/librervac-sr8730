@@ -8,14 +8,16 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait · `P1/P2/P3` priorit�
 
 ---
 
-## Phase 0 — Fondations build & test (P1)
+## Phase 0 — Fondations build & test (P1) ✅
 
 | # | Tâche | Détail |
 |---|-------|--------|
-| 0.1 | `[ ]` Créer le `Makefile` racine | Build SDCC croisé PIC32MX360F256L : sources racine + `cordlib/*.c` + `jsmn/jsmn.c`, flags `-fgnu89-inline`, sortie `.hex`. |
-| 0.2 | `[ ]` Harnais de test host | Compiler les modules testables avec `gcc -DTESTING` (pattern déjà utilisé par cordlib). Rafraîchir `cordlib/t/` (API obsolète). |
-| 0.3 | `[ ]` Fixer les bugs notés | `uart.c` : workaround `ticks = 0` toutes les 5 s ; `timing.c` : `UpdateCoreTimer(FOSC/1000/2)` suspect ; debounce dock dans `main.c`. |
-| 0.4 | `[ ]` README sérieux | Architecture, build, flash, protocole CORD, état d'avancement. |
+| 0.1 | `[x]` Créer le `Makefile` racine | Build **XC32** croisé PIC32MX360F256L (`make`, `make package`) : sources racine + `cordlib/*.c` + `jsmn/jsmn.c`, flags `-fgnu89-inline`, sortie `.hex/.elf/.map`. |
+| 0.2 | `[x]` Harnais de test host | `tests/` : stubs PIC32 (`tests/stubs/xc.h` simule TRIS/LAT/PORT/OC/ADC/timers/interruptions) + 6 suites gcc (`make test`) : motors, battery, charging, protocol CORD, bumper, uart. |
+| 0.3 | `[x]` Fixer les bugs notés | `uart.c` : workaround `ticks = 0` supprimé + `min()` non-portable remplacé ; `timing.c` : `UpdateCoreTimer(FOSC/1000/2)` → `/1000` ; `main.c` : debounce dock sur front uniquement ; `bumper.c` : debounce réécrit (rejette les rebonds < 100 ms, latche proprement) ; `sensors.c` : shift 33 bits UB corrigé (`1ULL`, constante 33 bits en hexa). |
+| 0.4 | `[x]` README sérieux | Architecture, build, flash, tests, lint, protocole CORD, CI, roadmap. |
+| 0.5 | `[x]` CI GitHub Actions | `.github/workflows/ci.yml` : 4 jobs — `lint` (cppcheck), `test` (gcc host), `build` (XC32 via `usimd/setup-xc-action@v1`, artefacts .hex/.elf), `package` (tar.gz). |
+| 0.6 | `[x]` Fix cordlib (submodule) | `cord_protocol.c` : `motor`/`move` étaient compilés hors cible (`#ifdef __SDCC`) — sur XC32 les commandes ne faisaient **rien**. Fix sur branche `cordlib/fix-motor-move-xc32`, submodule repointé dessus. Regression test dans `tests/test_protocol.c`. |
 
 ## Phase 1 — WiFi & contrôle à distance (P1, priorité porteur)
 

@@ -7,7 +7,7 @@ Firmware d'origine du projet : [LibreRVAC](https://github.com/LibreRVAC).
 
 - MCU : **PIC32MX360F256L**, 80 MHz (`FOSC 80000000`, `FPB_DIV 1`, voir `settings.h`)
 - Ressources : **256 Ko flash / 32 Ko RAM** — extrêmement serrées. Toute feature doit tenir dans le budget RAM.
-- Compilateur : **SDCC** (pas XC32). Obligatoire : `-fgnu89-inline` (sinon la plib Microchip ne compile pas, voir `main.h`).
+- Compilateur : **MPLAB XC32** (Microchip, gcc-based). Obligatoire : `-fgnu89-inline` (sinon la plib legacy ne compile pas, voir `main.h`). Le Makefile cible `/opt/microchip/xc32/current` par défaut (`XC32_DIR` surchargeable).
 - Pas de RTOS : boucle coopérative, callbacks enregistrés dans `main.c` (`set_callback_*`), `step()` appelé en continu par `cord_init.c`.
 
 ## Architecture (3 couches)
@@ -32,7 +32,6 @@ Esprit du projet : le PIC32 dialogue avec une **carte Linux/WiFi embarquée** vi
 - Protocole CORD fonctionnel (commandes motor/move/beep, événements)
 
 ### Manquant / TODO (≈50 TODO|FIXME|XXX hors submodules)
-- **Pas de Makefile** de build dans ce dépôt
 - **Pas de lecture des encodeurs de roues** → pas d'odométrie (`wheels.c` à remplir)
 - `cord_move`/`cord_move_arc` = placeholders (arrêt fixe 200 ms, pas de PID)
 - Machine de modes déclarée mais inutilisée
@@ -53,12 +52,12 @@ Esprit du projet : le PIC32 dialogue avec une **carte Linux/WiFi embarquée** vi
 
 ## Build et test
 
-- **Build cible** : SDCC + Makefile **à créer** (`Makefile` à la racine, compilation croisée `sdcc -mpic16 -p18f...` non — `-mpic16 -ppic32mx360f256l`, linker `plib`). Prévu dans le plan.
-- **Test avant flash** (obligatoire — le hardware est disponible mais on ne flashe pas à l'aveugle) :
-  1. `gcc` host : cordlib se compile en `.so` (`cd cordlib && make`), tests dans `cordlib/t/` (Perl 6 — API obsolète à rafraîchir, voir plan).
-  2. Harnais de simulation host à créer pour les nouveaux modules (odométrie, navigation, NVM) compilés avec `-DTESTING`.
-  3. Jamais de flash sans validation host préalable.
-- Le sandbox n'a **pas** SDCC installé : la compilation croisée se fait chez l'utilisateur ou en CI.
+- **Build cible** : `make` → XC32 (`xc32-gcc`), produit `dist/firmware.hex/.elf/.map`.
+- **Tests host** : `make test` — gcc + stubs PIC32 (`tests/stubs/xc.h`), 6 suites (motors, battery, charging, protocol, bumper, uart). **Jamais de flash sans `make test` vert.**
+- **Lint** : `make lint` — cppcheck (warning, performance, portability).
+- **Package** : `make package` — archive `dist/librervac-sr8730-firmware.tar.gz`.
+- **CI** : `.github/workflows/ci.yml` — jobs `lint`, `test`, `build` (XC32 via `usimd/setup-xc-action`), `package`, sur push/PR.
+- Le sandbox n'a **pas** XC32 installé : la compilation croisée se fait chez l'utilisateur ou en CI.
 
 ## Objectif du projet
 

@@ -33,7 +33,7 @@ void setup_timing() {
 
 void __ISR(_CORE_TIMER_VECTOR, IPL1SOFT) _CoreTimerHandler(void) {
     mCTClearIntFlag();
-    UpdateCoreTimer(FOSC / 1000 / 2); // TODO why / 2?
+    UpdateCoreTimer(FOSC / 1000);
     milliseconds++;
 }
 

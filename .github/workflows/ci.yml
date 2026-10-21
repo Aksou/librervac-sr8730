@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Lint : analyse statique du code (firmware + cordlib + tests)
+  # -------------------------------------------------------------------------
+  lint:
+    name: Lint (cppcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck
+        run: make lint
+
+  # -------------------------------------------------------------------------
+  # Test : tests unitaires host (gcc) — simule les registres PIC32
+  # -------------------------------------------------------------------------
+  test:
+    name: Tests host (gcc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install gcc
+        run: sudo apt-get update && sudo apt-get install -y gcc make
+
+      - name: Build and run host tests
+        run: make test
+
+  # -------------------------------------------------------------------------
+  # Build : compilation croisée du firmware pour le PIC32MX360F256L (XC32)
+  # -------------------------------------------------------------------------
+  build:
+    name: Build firmware (XC32)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup XC32 compiler
+        uses: usimd/setup-xc-action@v1
+        with:
+          compiler: 'xc32'
+          version: '4.45'
+          install-dir: '/opt/microchip'
+
+      - name: Build firmware
+        run: make XC32_DIR=/opt/microchip/xc32/v4.45
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: |
+            dist/firmware.hex
+            dist/firmware.elf
+            dist/firmware.map
+          if-no-files-found: error
+
+  # -------------------------------------------------------------------------
+  # Package : archive les artefacts du firmware (dépend du build)
+  # -------------------------------------------------------------------------
+  package:
+    name: Package firmware
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup XC32 compiler
+        uses: usimd/setup-xc-action@v1
+        with:
+          compiler: 'xc32'
+          version: '4.45'
+          install-dir: '/opt/microchip'
+
+      - name: Package firmware
+        run: make package XC32_DIR=/opt/microchip/xc32/v4.45
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-package
+          path: dist/librervac-sr8730-firmware.tar.gz
+          if-no-files-found: error

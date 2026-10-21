@@ -29,7 +29,7 @@
 // 38kHz PWM to make infrared stuff happy
 // 2000 bits per second
 // 5 32-bit packets per second
-#define CHARGE_ME_SIGNAL 0b111111000110000110000110011000011L
+#define CHARGE_ME_SIGNAL 0x1F8C30CC3ULL // 33-bit "charge me" pattern (see below)
 #define CHARGE_ME_BITS   33
 // ↑ Yes, that's a 33-bit value! That's what you *have* to send! WTF? Ask Samsung!
 // ↓ It is mostly insensetive to changes of these values. Almost any will do.
@@ -61,7 +61,7 @@ void __ISR(_TIMER_1_VECTOR, IPL3SOFT) T1Interrupt(void) {
         current_bit = ticks / TICKS_PER_BIT;
 
         if (current_bit < CHARGE_ME_BITS &&
-                CHARGE_ME_SIGNAL & (1 << (CHARGE_ME_BITS - current_bit - 1)))
+                CHARGE_ME_SIGNAL & (1ULL << (CHARGE_ME_BITS - current_bit - 1)))
             DIGPIN(PIN_IC_SENSORS_X_OUT, ticks % 2 == 0 ? on : off);
         else
             DIGPIN(PIN_IC_SENSORS_X_OUT, off);

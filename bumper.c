@@ -40,20 +40,30 @@ bool pressed_right;
 uint_fast32_t moment_right;
 
 void bumper_step() {
-    if (hw_get_time_ms() > moment_left + DEBOUNCE_TIME_MS) {
-        if (!pressed_left && READPIN(PIN_BUMPER_SWITCH_LEFT)) {
-            pressed_left = true;
+    bool pin_left = READPIN(PIN_BUMPER_SWITCH_LEFT);
+    if (pin_left != pressed_left) {
+        // the pin changed since the last accepted reading; it has to stay
+        // in the new state for the whole debounce window before we accept it
+        if (hw_get_time_ms() > moment_left + DEBOUNCE_TIME_MS) {
+            pressed_left = pin_left;
             moment_left = hw_get_time_ms();
-            cord_event_bumper(-45, 45);
-        } else
-            pressed_left = false;
+            if (pressed_left)
+                cord_event_bumper(-45, 45);
+        }
+    } else {
+        // stable level: (re)start the debounce window so that a change is
+        // only accepted after DEBOUNCE_TIME_MS in the new state
+        moment_left = hw_get_time_ms();
     }
-    if (hw_get_time_ms() > moment_right + DEBOUNCE_TIME_MS) {
-        if (!pressed_right && READPIN(PIN_BUMPER_SWITCH_RIGHT)) {
-            pressed_right = true;
+    bool pin_right = READPIN(PIN_BUMPER_SWITCH_RIGHT);
+    if (pin_right != pressed_right) {
+        if (hw_get_time_ms() > moment_right + DEBOUNCE_TIME_MS) {
+            pressed_right = pin_right;
             moment_right = hw_get_time_ms();
-            cord_event_bumper(+45, 45);
-        } else
-            pressed_right = false;
+            if (pressed_right)
+                cord_event_bumper(+45, 45);
+        }
+    } else {
+        moment_right = hw_get_time_ms();
     }
 }
