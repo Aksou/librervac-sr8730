@@ -83,14 +83,16 @@ void step() {
     leds_step();
 
     static uint_fast32_t dock_detect_debounce = 0;
-    if (READPIN(PIN_ADAPTER_DETECT)
+    static bool dock_pin_state = false;
+    bool dock_pin = READPIN(PIN_ADAPTER_DETECT);
+    if (dock_pin != dock_pin_state
             && dock_detect_debounce + 300 < hw_get_time_ms()) {
-        dock_connect();
+        dock_pin_state = dock_pin;
         dock_detect_debounce = hw_get_time_ms();
-    } else if (!READPIN(PIN_ADAPTER_DETECT)
-            && dock_detect_debounce + 300 < hw_get_time_ms()) {
-        dock_disconnect(); // TODO we're overcalling it a bit. It's OK but could be better
-        dock_detect_debounce = hw_get_time_ms();
+        if (dock_pin)
+            dock_connect();
+        else
+            dock_disconnect();
     }
 
     /*

@@ -115,21 +115,6 @@ void uart_process_edges() {
 
     //static bool fail = false;
     //static char debug_strs[10][50];
-    static uint_fast32_t last_debug = 0;
-
-
-    uint_fast32_t curms = hw_get_time_ms();
-    if (curms % 5000 == 0 && last_debug < curms) {
-        ticks = 0; // XXX SHITTY WORKAROUND
-        last_debug = curms;
-        /*char str[40];
-        sprintf(str, "ticks=%u\r\n", ticks);
-        for (int i = 0; i < 40; i++) {
-            if (str[i] == 0)
-                break;
-            cord_connection_output_put(str[i]);
-        }*/
-    }
 
     if (sent && cord_connection_output_size() > 0) {
         output_byte = cord_connection_output_pull();
@@ -146,7 +131,8 @@ void uart_process_edges() {
         return; // allow some initial noise, just in case
 
     if (!initialized) { // TODO test if start bit is low
-        ticks_per_bit = min(edge.ticks - input_last_ticks, ticks_per_bit);
+        uint_fast32_t delta = edge.ticks - input_last_ticks;
+        ticks_per_bit = delta < ticks_per_bit ? delta : ticks_per_bit;
         input_last_ticks = edge.ticks;
         if (++input_current_bit == 1 + 8 + 1) { // start + bits + stop
             initialized = true;
