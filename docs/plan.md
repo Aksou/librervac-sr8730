@@ -19,6 +19,19 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait · `P1/P2/P3` priorit�
 | 0.5 | `[x]` CI GitHub Actions | `.github/workflows/ci.yml` : 4 jobs — `lint` (cppcheck), `test` (gcc host), `build` (XC32 via `usimd/setup-xc-action@v1`, artefacts .hex/.elf), `package` (tar.gz). |
 | 0.6 | `[x]` Fix cordlib + vendor les dépendances | `cord_protocol.c` : `motor`/`move` étaient compilés hors cible (`#ifdef __SDCC`) — sur XC32 les commandes ne faisaient **rien**. `cordlib/`, `jsmn/` et `pic32libs/` sont désormais **vendored** (submodules supprimés) pour que le build et les fixes soient autonomes. Regression test dans `tests/test_protocol.c`. |
 
+## Phase 0.5 — Assainissement & sécurité (P1, avant Phase 1) 🆕
+
+Levier stratégique : rendre le MCU robuste **avant** d'y brancher le WiFi. Voir `docs/audit.md` §5 et §10.
+
+| # | Tâche | Détail |
+|---|-------|--------|
+| 0.5.1 | `[ ]` Activer le watchdog | `FWDTEN = ON` + `SWDTEN` dans `main.c`, kicker (`ClearWDT()`) dans la boucle principale. **Sécurité #1** : un robot autonome ne doit jamais rester bloqué. Vérifier le postscaler (actuellement `PS1048576` — ajuster pour ~1-2 s). |
+| 0.5.2 | `[ ]` Corriger `process_beep()` | Même bug que `motor`/`move` : encore `#ifndef __SDCC` dans `cordlib/cord_sound.c` (utilise `atof`). La commande `beep` est un no-op sur XC32. |
+| 0.5.3 | `[ ]` Séparer HAL et protocole | `cord_hw.c` touche directement aux registres PIC32 — extraire une couche HAL propre pour rendre cordlib testable/portable. |
+| 0.5.4 | `[ ]` Moderniser C11 | `stdint.h`/`stdbool.h` systématiques, `_Static_assert` sur les tailles de buffers, nettoyer les `goto` (39 occurrences). |
+| 0.5.5 | `[ ]` Nettoyer cordlib/t/ | Tests Perl 6 obsolètes (API morte `hw_set_motor_utilization`) — supprimer ou porter sur le harnais host. |
+| 0.5.6 | `[ ]` Audit capteurs hardware | Confirmer sur le robot : encodeurs roues présents ? IMU (accéléro/gyro) présent ? Récepteurs IR dock câblés ? (Q3 en suspens — bloque Phase 2) |
+
 ## Phase 1 — WiFi & contrôle à distance (P1, priorité porteur)
 
 Deux pistes documentées ci-dessous ; décision d'implémentation après prototypage.
@@ -73,7 +86,7 @@ Prérequis de toute navigation intelligente.
 | 5.2 | `[ ]` Calibration assistée | Procédure guidée (encodeurs, batterie, boussole) via CORD, stockée en NVM. |
 | 5.3 | `[ ]` Télémétrie complète | Batterie, capteurs, position, carte — flux périodique vers l'appli. |
 | 5.4 | `[ ]` Documentation utilisateur | Flash, appli, protocole CORD pour développeurs. |
-| 5.5 | `[ ]` CI | Build SDCC en CI (compile-only) + tests host. |
+| 5.5 | `[ ]` CI durcie | Ajouter job `test-flash` (smoke test sur hardware via banc de test) et badge de couverture dans le README. |
 
 ---
 
@@ -112,3 +125,7 @@ Prérequis de toute navigation intelligente.
 ## Suivi
 
 Cocher les cases au fur et à mesure. Toute tâche commencée passe en `[~]`, terminée en `[x]` avec le commit/PR associé.
+
+### Suivi par issues
+
+Le tracker d'issues GitHub du dépôt est indisponible dans l'environnement courant (API de mutation 403). En attendant, le suivi par phase est assuré par les fichiers dans **`docs/issues/`** (un fichier Markdown par phase, même format qu'une issue GitHub : titre, description, checklist, labels). Dès que le tracker GitHub sera réactivé, ces fichiers seront convertis en issues réelles.

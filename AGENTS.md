@@ -68,3 +68,10 @@ Mener à complétion le firmware alternatif : base temps-réel solide (odométri
 **Priorité retenue par le porteur** : WiFi / application de contrôle d'abord, puis autonomie intelligente.
 
 Voir `docs/plan.md` pour le plan de tâches détaillé et les pistes d'implémentation.
+
+**Documents de référence :**
+- `docs/audit.md` — **audit complet du projet** (architecture, qualité du code, bugs, budget hardware, pistes WiFi/stockage/navigation, orientation stratégique, réponses aux 5 questions)
+- `docs/plan.md` — plan 6 phases (0 → 0.5 → 1 → 2 → 3 → 4 → 5) jusqu'à la complétion
+- `docs/issues/` — **suivi par phase** (fichiers au format issue ; le tracker GitHub est indisponible en environnement agent, 403 sur l'API de mutation — convertir en issues réelles dès réactivation)
+
+**Prochaine phase à lancer : Phase 0.5 — Assainissement & sécurité** (watchdog, fix `beep`, séparation HAL/protocole, modernisation C11, audit capteurs hardware). Voir `docs/issues/phase-0.5-assainissement.md`.
